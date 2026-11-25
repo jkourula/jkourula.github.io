@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Turn-Based Racing</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <canvas id="game"></canvas>
+
+  <div id="hud" class="hidden">
+    <div id="info" class="panel"></div>
+    <div id="standings" class="panel"></div>
+    <div id="help" class="panel">
+      <span class="sw green"></span>grip &nbsp; <span class="sw yellow"></span>slide &nbsp; <span class="sw red"></span>risky (chance to spin) &nbsp;·&nbsp;
+      distance = speed, angle = steering &nbsp;·&nbsp; dashed line = keep speed &nbsp;·&nbsp;
+      click to commit &nbsp;·&nbsp; scroll / Z = zoom &nbsp;·&nbsp; M = mute &nbsp;·&nbsp; R = restart &nbsp;·&nbsp; Esc = menu
+    </div>
+    <div id="mute" class="mutetag"></div>
+  </div>
+
+  <div id="menu" class="overlay">
+    <div class="card">
+      <h1>Turn-Based Racing</h1>
+      <p class="sub">Top-down racing where every move is a decision.</p>
+      <ul class="rules">
+        <li>Each turn, the coloured fan in front of your car shows every move you can make.</li>
+        <li><b>Distance</b> from the car is your speed: the near edge is full braking, the far edge is full throttle.</li>
+        <li><b>Width</b> is how much you can steer. The faster you go, the narrower it gets.</li>
+        <li><span class="sw green"></span>Green moves keep grip. <span class="sw yellow"></span>Yellow moves slide: you turn harder but might spin out.
+          <span class="sw red"></span>Red moves are even sharper and much more likely to spin. The further out you click, the higher the risk.</li>
+        <li>Grass slows you down. All cars move at the same time.</li>
+        <li><b>Hitting walls or other cars damages your car.</b> A damaged car is slower and has less grip. At 100% damage the car is wrecked.</li>
+      </ul>
+      <div class="opts">
+        <label>Track <select id="track"></select></label>
+        <label>Laps
+          <select id="laps"><option>1</option><option selected>2</option><option>3</option><option>5</option></select>
+        </label>
+        <label>Opponents
+          <select id="ai"><option>1</option><option>2</option><option selected>3</option><option>4</option><option>5</option></select>
+        </label>
+      </div>
+      <button id="start">Start race</button>
+    </div>
+  </div>
+
+  <div id="results" class="overlay hidden">
+    <div class="card">
+      <h1 id="results-title">Results</h1>
+      <table>
+        <thead><tr><th>#</th><th>Driver</th><th>Turns</th><th>Gap</th><th>Damage</th></tr></thead>
+        <tbody id="results-body"></tbody>
+      </table>
+      <div class="row">
+        <button id="again">Race again</button>
+        <button id="tomenu" class="secondary">Menu</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>
