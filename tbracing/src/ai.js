@@ -3,7 +3,7 @@
 // A precomputed speed profile (max cornering speed from track curvature,
 // propagated backwards with braking) tells the AI how fast it may go.
 
-import { PHYS, moveLimits, turnLimit, pathPoint, damageFactors, makeMoveFor } from './physics.js';
+import { PHYS, moveLimits, turnLimit, pathPoint, damageFactors, makeMoveFor, impactDamage } from './physics.js';
 import { wrapAngle } from './track.js';
 
 export function computeProfile(track) {
@@ -55,18 +55,27 @@ function candidates(state, ns, nt, maxZone) {
 
 function evaluate(race, state, m, startS, others, ai) {
   const { track } = race;
-  const SAMPLES = 6, r = PHYS.carRadius;
-  let grass = 0, endN = null, p = null, prevS = startS, prevD = state.dist ?? 0, blocked = 0;
+  const SAMPLES = 10, r = PHYS.carRadius;
+  let grass = 0, endN = null, p = null, prevS = startS, prevD = state.dist ?? 0, crash = 0;
+  for (const o of others) o.hit = false;
   for (let q = 1; q <= SAMPLES; q++) {
     p = pathPoint(state, m, q / SAMPLES);
     const nr = track.nearest(p.x, p.y);
-    if ((nr.dist > track.limit - r - 3 && nr.dist > prevD) || Math.abs(track.deltaS(prevS, nr.s)) > 250) {
+    if ((nr.dist > track.limit - r - 6 && nr.dist > prevD) || Math.abs(track.deltaS(prevS, nr.s)) > 250) {
       return { score: -1e6 + q * 1e4 - m.s * 50 };
     }
     prevS = nr.s;
     prevD = nr.dist;
+    // other cars: assume they carry on straight at a bit under their current speed
     for (const o of others) {
-      if (o.v < 40 && Math.hypot(o.x - p.x, o.y - p.y) < 2 * r + 3) blocked++;
+      if (o.hit) continue;
+      const f = (q / SAMPLES) * 0.85 * o.v;
+      const ox = o.x + Math.cos(o.h) * f, oy = o.y + Math.sin(o.h) * f;
+      if (Math.hypot(ox - p.x, oy - p.y) < 2 * r + 4) {
+        const closing = Math.hypot(Math.cos(p.h) * m.s - Math.cos(o.h) * o.v, Math.sin(p.h) * m.s - Math.sin(o.h) * o.v);
+        crash += 60 + 4 * impactDamage(closing, PHYS.damage.carMin, PHYS.damage.carRange);
+        o.hit = true;
+      }
     }
     if (nr.dist > track.hw - 3) grass++;
     endN = nr;
@@ -80,7 +89,7 @@ function evaluate(race, state, m, startS, others, ai) {
   const herr = Math.abs(wrapAngle(p.h - Math.atan2(tgt.y - p.y, tgt.x - p.x)));
   let score = gain - over * over * 0.08 - over * 1.5 - herr * herr * 30 * (0.5 + vNext / PHYS.maxSpeed) - grass * 10;
   if (endN.dist > track.hw) score -= 25;
-  score -= blocked * 40;
+  score -= crash;
   if (m.drift) score -= ai.driftCost;
   score -= (m.risk || 0) * (ai.spinCost ?? 150);
   for (const o of others) {
@@ -104,7 +113,7 @@ export function chooseMove(car, race) {
     ? []
     : race.cars
         .filter((c) => c !== car && !c.ghost)
-        .map((o) => ({ x: o.x, y: o.y, v: o.v, px: o.x + Math.cos(o.h) * o.v, py: o.y + Math.sin(o.h) * o.v }));
+        .map((o) => ({ x: o.x, y: o.y, h: o.h, v: o.v, px: o.x + Math.cos(o.h) * o.v, py: o.y + Math.sin(o.h) * o.v }));
   const ai = car.ai;
   const first = candidates(car, 9, 13, ai.maxZone).map((m) => ({ m, e: evaluate(race, self, m, here.s, others, ai) }));
   first.sort((a, b) => b.e.score - a.e.score);

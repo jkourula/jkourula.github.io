@@ -32,17 +32,25 @@ export const PHYS = {
   strikerKeep: 0.5,     // car that runs into another
   struckKeep: 0.85,     // car that gets hit
   grass: { accel: 0.5, brake: 0.7, grip: 0.6, maxSpeed: 75, drag: 0.7 },
-  // damage: points per unit of impact speed above a threshold; 100 = wrecked
-  damage: { wallMin: 18, wallScale: 0.55, carMin: 12, carScale: 0.45, wreck: 100 },
+  // Damage rises with the square of impact speed above a threshold:
+  //   dmg = 100 * ((impact - min) / range)^2, 100 = wrecked.
+  // Below min: harmless scrape/tap. impact = min + range: wrecked in one hit.
+  // Wall impact = speed into the wall; car impact = closing speed of the two cars.
+  damage: { wallMin: 15, wallRange: 45, carMin: 10, carRange: 40, wreck: 100 },
   carRadius: 8,
   carLength: 22,
   carWidth: 11,
 };
 
+export function impactDamage(impact, min, range) {
+  if (impact <= min) return 0;
+  return 100 * ((impact - min) / range) ** 2;
+}
+
 // A damaged car is slower, accelerates worse and has less grip.
 export function damageFactors(car) {
   const d = clamp((car.damage || 0) / PHYS.damage.wreck, 0, 1);
-  return { top: 1 - 0.35 * d, accel: 1 - 0.4 * d, grip: 1 - 0.3 * d };
+  return { top: 1 - 0.5 * d, accel: 1 - 0.5 * d, grip: 1 - 0.4 * d };
 }
 
 export function moveLimits(car) {

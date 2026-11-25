@@ -1,7 +1,7 @@
 // Race state and simultaneous turn resolution (no DOM; runs in Node for tests).
 
 import { Track, wrapAngle, clamp } from './track.js';
-import { PHYS, pathPoint, movePose } from './physics.js';
+import { PHYS, pathPoint, movePose, impactDamage } from './physics.js';
 import { computeProfile, chooseMove } from './ai.js';
 
 export const DRIVERS = [
@@ -104,7 +104,7 @@ function wallImpact(track, pos, h, s) {
   nx /= l; ny /= l;
   const into = Math.max(0.25, Math.cos(h) * nx + Math.sin(h) * ny);
   const speed = s * into;
-  const dmg = Math.max(0, speed - PHYS.damage.wallMin) * PHYS.damage.wallScale;
+  const dmg = impactDamage(speed, PHYS.damage.wallMin, PHYS.damage.wallRange);
   return { nx, ny, speed, dmg, trackAngle: track.angleAt(nr.s) };
 }
 
@@ -258,7 +258,7 @@ export function resolveTurn(race, moves) {
           const key = `${i}-${j}`;
           if (hitPairs.has(key)) continue;
           hitPairs.add(key);
-          const dmg = Math.max(0, closing - PHYS.damage.carMin) * PHYS.damage.carScale;
+          const dmg = impactDamage(closing, PHYS.damage.carMin, PHYS.damage.carRange);
           const mx = (a.tent.x + b.tent.x) / 2, my = (a.tent.y + b.tent.y) / 2;
           a.dmg += dmg; b.dmg += dmg;
           a.dents.push(localDent(a.tent, mx, my, dmg));
