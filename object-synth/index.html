@@ -6,8 +6,8 @@
   <title>Object Synth</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
-  <script type="module" crossorigin src="/object-synth/assets/index-CCiHks_l.js"></script>
-  <link rel="stylesheet" crossorigin href="/object-synth/assets/index-D3CMDmua.css">
+  <script type="module" crossorigin src="/object-synth/assets/index-B0GAlp8v.js"></script>
+  <link rel="stylesheet" crossorigin href="/object-synth/assets/index-Vr_fVW9-.css">
 </head>
 <body>
   <div id="app">
@@ -42,7 +42,18 @@
             </label>
             <span id="timeReadout" class="mono">0.000 s</span>
           </div>
-          <div class="hint">Click the surface to set the drop point · drag to orbit · scroll to zoom</div>
+          <div class="hint" id="viewHint">Click the surface or drag the handles to set up the scene · drag to orbit · scroll to zoom</div>
+        </div>
+        <div id="sceneTools">
+          <span class="lab">Obstacle</span>
+          <div class="seg" id="toolObstacle">
+            <button data-v="none">None</button><button data-v="funnel">Funnel</button><button data-v="ramp">Ramp</button><button data-v="pegs">Pegs</button>
+          </div>
+          <button class="small" id="toolWalls" title="Tray walls around the surface">Walls</button>
+          <button class="small" id="toolScrape" title="Drag object A across the surface after it lands">Scrape</button>
+          <span class="sep"></span>
+          <button class="small" id="toolHandles" title="Show / hide the scene handles (H)">Handles</button>
+          <button class="small ghost" id="toolFrame" title="Reset the camera">Frame</button>
         </div>
       </div>
       <div id="takeArea">
